@@ -7,33 +7,79 @@
 <title>LDX Token Sale | Lidex on BNB Smart Chain</title>
 <meta name="description" content="Buy LDX on BNB Smart Chain with USDT, USDC, BNB or ETH. Track your purchase, vesting schedule and claimable balance on-chain.">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
   :root{
-    --bg:#030d07;
-    --panel:#06150c;
-    --card:rgba(255,255,255,.04);
-    --card-hover:rgba(141,255,180,.07);
-    --border:rgba(141,255,180,.14);
-    --green:#1ee35a;
-    --green-2:#8dffb4;
-    --text:#eaf7ee;
-    --muted:#8fa89a;
-    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --bg:#050b10;
+    --panel:#0a151a;
+    --card:rgba(12,28,34,.72);
+    --card-hover:rgba(32,211,126,.1);
+    --border:rgba(148,229,202,.17);
+    --green:#28e68a;
+    --green-2:#a2ffd2;
+    --cyan:#7de9ff;
+    --text:#eefcf7;
+    --muted:#91a9aa;
+    --display:"Space Grotesk",sans-serif;
+    --mono:"DM Mono",monospace;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
     background:
-      radial-gradient(900px 500px at 80% -10%, rgba(30,227,90,.12), transparent 60%),
-      radial-gradient(700px 400px at 10% 0%, rgba(30,227,90,.06), transparent 55%),
+      linear-gradient(rgba(125,233,255,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(125,233,255,.025) 1px,transparent 1px),
+      radial-gradient(900px 500px at 80% -10%, rgba(40,230,138,.16), transparent 60%),
+      radial-gradient(700px 400px at 10% 0%, rgba(125,233,255,.08), transparent 55%),
       var(--bg);
+    background-size:48px 48px,48px 48px,auto,auto,auto;
     color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:var(--display);
     line-height:1.6;
     -webkit-font-smoothing:antialiased;
   }
   a{color:var(--green-2);text-decoration:none}
   a:hover{text-decoration:underline}
   .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+
+  /* ---------- HIGH-TECH POLISH ---------- */
+  ::selection{background:var(--green);color:#04100b}
+  body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 0 48%,rgba(125,233,255,.035) 50%,transparent 52%);mix-blend-mode:screen;z-index:-1}
+  h1,h2,h3,.brand,.btn,.live-pill,.price,.stat .v,.dash-item .v{font-family:var(--display)}
+  h1{letter-spacing:-1.8px;text-shadow:0 0 34px rgba(40,230,138,.18)}
+  h1 .green{background:linear-gradient(110deg,var(--cyan),var(--green-2) 45%,var(--green));}
+  nav{background:rgba(5,11,16,.78);border-bottom-color:rgba(125,233,255,.16)}
+  .brand{letter-spacing:.8px}
+  .brand small{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--cyan)}
+  .nav-links a{transition:color .2s ease}
+  .nav-links a:hover{color:var(--cyan)}
+  header{position:relative}
+  header:after{content:"LIVE ON BSC / 56";position:absolute;right:24px;top:34px;color:rgba(125,233,255,.42);font:10px var(--mono);letter-spacing:1.5px;writing-mode:vertical-rl}
+  .logo{box-shadow:0 0 0 1px rgba(162,255,210,.35),0 0 0 10px rgba(40,230,138,.035),0 16px 60px rgba(40,230,138,.36);animation:logo-float 5s ease-in-out infinite}
+  .eyebrow{background:rgba(125,233,255,.06);border-color:rgba(125,233,255,.38);color:var(--cyan);font-family:var(--mono);font-size:10px;letter-spacing:1.7px}
+  .hero-card,.card,.link-card,.t-row,details{background:linear-gradient(145deg,rgba(16,35,41,.74),rgba(7,18,24,.7));border-color:rgba(148,229,202,.16);border-radius:10px;box-shadow:inset 0 1px rgba(255,255,255,.035)}
+  .hero-card:hover,.card:hover,.link-card:hover{border-color:rgba(125,233,255,.38);box-shadow:0 12px 30px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.05)}
+  .btn{border-radius:8px;letter-spacing:.2px}
+  .btn-primary{background:linear-gradient(110deg,var(--cyan),var(--green));box-shadow:0 8px 30px rgba(40,230,138,.2)}
+  .btn-secondary{background:rgba(255,255,255,.035);border-color:rgba(125,233,255,.24)}
+  .sale-panel{background:linear-gradient(145deg,rgba(14,35,39,.97),rgba(5,14,20,.98));border-color:rgba(162,255,210,.36);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.28),0 0 60px rgba(40,230,138,.1),inset 0 1px rgba(255,255,255,.08)}
+  .sale-panel:after{content:"";position:absolute;inset:1px;pointer-events:none;border:1px solid rgba(125,233,255,.06);border-radius:13px}
+  .sale-title img{box-shadow:0 0 0 4px rgba(125,233,255,.04),0 0 28px rgba(40,230,138,.5)}
+  .sale-kicker,.field-label,.sale-label{font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;font-size:10px}
+  .live-pill{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+  .chain-chip{border-color:rgba(125,233,255,.35);color:var(--cyan);font-family:var(--mono);font-size:12px}
+  .asset-tab{border-radius:8px;border-color:rgba(148,229,202,.22);font-family:var(--mono);font-size:12px}
+  .asset-tab:hover,.asset-tab.active{background:rgba(40,230,138,.14);border-color:var(--green);box-shadow:0 0 18px rgba(40,230,138,.1)}
+  .amount-wrap{border-radius:8px;border-color:rgba(125,233,255,.3)}
+  .amount-wrap input{font-family:var(--mono)}
+  .dashboard,.stats{border-color:rgba(148,229,202,.17);border-radius:10px}
+  .dash-item,.stat{background:rgba(8,21,27,.88)}
+  .stat .k,.dash-item .k{font-family:var(--mono);letter-spacing:1.1px}
+  .badge{font-family:var(--mono);font-size:9px;letter-spacing:1.3px}
+  .t-row{border-radius:8px}
+  .t-row .v.mono{font-family:var(--mono)}
+  .note-box{border-radius:8px;background:rgba(125,233,255,.045);border-color:rgba(125,233,255,.18)}
+  @keyframes logo-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  @media(max-width:760px){header:after{display:none}}
 
   /* ---------- NAV ---------- */
   nav{
@@ -243,7 +289,7 @@
   <div class="sale-panel">
     <div class="sale-top">
       <div class="sale-title">
-        <img src="../uploads/token.png" alt="LDX token">
+        <img src="logo.png" alt="LDX token">
         <div><div class="sale-kicker">Lidex ecosystem</div><h2>LDX Token Sale</h2></div>
       </div>
       <span class="live-pill">Live</span>
