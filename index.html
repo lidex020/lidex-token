@@ -159,7 +159,7 @@
   .sale-title h2{margin:0;font-size:clamp(25px,4vw,38px);letter-spacing:-1px}.sale-kicker{color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px}
   .live-pill{border:1px solid rgba(141,255,180,.55);background:rgba(30,227,90,.1);color:var(--green-2);border-radius:999px;padding:8px 14px;font-weight:700;white-space:nowrap;box-shadow:0 0 16px rgba(30,227,90,.18)}
   .sale-main{display:grid;grid-template-columns:.9fr 1.1fr;gap:34px;padding:34px}.sale-copy{display:flex;flex-direction:column;justify-content:center}.sale-label{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:8px}.price{font-size:clamp(30px,4vw,46px);line-height:1.1;color:var(--green-2);font-weight:800;letter-spacing:-1px}.chain-chip{display:inline-flex;align-items:center;gap:8px;width:max-content;margin-top:34px;border:1px solid rgba(141,255,180,.45);border-radius:999px;padding:9px 16px;color:var(--green-2);font-weight:700}.chain-chip .dot{width:8px;height:8px}
-  .sale-form{min-width:0}.field-label{display:block;color:#bad5c0;font-size:14px;font-weight:700;margin:0 0 9px}.asset-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}.asset-tab{cursor:pointer;border:1px solid rgba(141,255,180,.45);background:rgba(255,255,255,.025);color:var(--text);border-radius:12px;padding:10px 5px;font-weight:700;font-size:14px;transition:.15s}.asset-tab:hover,.asset-tab.active{background:rgba(30,227,90,.16);border-color:var(--green);color:var(--green-2)}
+  .sale-form{min-width:0}.field-label{display:block;color:#bad5c0;font-size:14px;font-weight:700;margin:0 0 9px}.asset-tabs{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:20px}.asset-tab[hidden]{display:none}.asset-tab{cursor:pointer;border:1px solid rgba(141,255,180,.45);background:rgba(255,255,255,.025);color:var(--text);border-radius:12px;padding:10px 5px;font-weight:700;font-size:14px;transition:.15s}.asset-tab:hover,.asset-tab.active{background:rgba(30,227,90,.16);border-color:var(--green);color:var(--green-2)}
   .amount-wrap{display:flex;align-items:center;border:1px solid rgba(141,255,180,.5);border-radius:12px;background:rgba(255,255,255,.025);padding:0 12px}.amount-wrap:focus-within{box-shadow:0 0 0 3px rgba(30,227,90,.12);border-color:var(--green)}.amount-wrap input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:700 20px var(--mono);padding:14px 4px}.amount-unit{color:var(--green-2);font-weight:800}.allocation{padding:16px 0 20px}.allocation strong{display:block;font-size:25px;color:var(--green-2)}.allocation span{color:var(--muted);font-size:13px}.sale-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sale-actions .btn{justify-content:center;cursor:pointer;font-family:inherit}.sale-status{min-height:22px;color:var(--muted);font-size:13px;margin-top:13px}.sale-foot{border-top:1px solid rgba(141,255,180,.12);padding:18px 34px;color:var(--muted);font-size:13px;text-align:center}.sale-foot strong{color:var(--text)}
   .dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:16px}.dash-item{background:rgba(6,21,12,.9);padding:18px 20px}.dash-item .k{display:block;color:var(--muted);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px}.dash-item .v{font-weight:800;font-size:18px}.progress-track{height:8px;background:rgba(255,255,255,.1);border-radius:20px;overflow:hidden;margin-top:9px}.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--green-2));border-radius:20px;transition:width .3s}
   .claim-btn{margin-top:10px;padding:6px 13px;color:var(--green-2);border-color:rgba(141,255,180,.45);background:transparent;cursor:pointer}.claim-btn:hover{background:rgba(30,227,90,.12)}
@@ -318,14 +318,14 @@
       <div class="sale-form">
         <label class="field-label">Payment asset</label>
         <div class="asset-tabs" role="group" aria-label="Payment asset">
-          <button class="asset-tab active" type="button" data-asset="USDT">USDT</button>
-          <button class="asset-tab" type="button" data-asset="USDC">USDC</button>
-          <button class="asset-tab" type="button" data-asset="BNB">BNB</button>
-          <button class="asset-tab" type="button" data-asset="ETH">ETH</button>
+          <button class="asset-tab" type="button" data-asset="USDT" hidden>USDT</button>
+          <button class="asset-tab" type="button" data-asset="USDC" hidden>USDC</button>
+          <button class="asset-tab active" type="button" data-asset="BNB">BNB</button>
+          <button class="asset-tab" type="button" data-asset="ETH" hidden>ETH</button>
         </div>
         <label class="field-label" for="paymentAmount">Amount</label>
-        <div class="amount-wrap"><input id="paymentAmount" inputmode="decimal" type="number" min="0" step="any" aria-label="Payment amount"><span class="amount-unit" id="amountUnit">USDT</span></div>
-        <div class="allocation"><div class="field-label">LDX allocation</div><strong id="allocationValue">0 LDX</strong><span id="allocationNote">1 LDX = 0.0035 USDT</span></div>
+        <div class="amount-wrap"><input id="paymentAmount" inputmode="decimal" type="number" min="0" step="any" aria-label="Payment amount"><span class="amount-unit" id="amountUnit">BNB</span></div>
+        <div class="allocation"><div class="field-label">LDX allocation</div><strong id="allocationValue">0 LDX</strong><span id="allocationNote">Enter a BNB amount to see the live allocation</span></div>
         <div class="sale-actions"><button class="btn btn-secondary" id="connectButton" type="button">▣ Connect Wallet</button><button class="btn btn-primary" id="buyButton" type="button">Buy LDX</button></div>
         <div class="sale-status" id="saleStatus" role="status" aria-live="polite">On-chain oracle quotes load from the live sale contract.</div>
         <div class="rate-meta" id="rateMeta">On-chain oracle quote · live on BNB Smart Chain</div>
@@ -639,7 +639,7 @@
   var CONTRACT = "0x567A4F63f6838005e104C053fc24a3510b0432E1";
   var SALE_CONTRACT = window.LDX_SALE_CONTRACT || "0x4E35B37De5Ef51539A2527933e13b082a95DC238";
   var BSC_CHAIN_ID = "0x38";
-  var selectedAsset = "USDT";
+  var selectedAsset = "BNB";
   var walletAddress = "";
   var assetIndexes = {USDT: 0, USDC: 1, BNB: 2, ETH: 3};
   var saleAbi = [
