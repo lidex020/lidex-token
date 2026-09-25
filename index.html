@@ -322,7 +322,7 @@
   <div class="dashboard" aria-label="Your vesting dashboard">
     <div class="dash-item"><span class="k">Total Purchased</span><span class="v" id="purchasedValue">Connect wallet</span></div>
     <div class="dash-item"><span class="k">Total Claimed</span><span class="v" id="claimedValue">Connect wallet</span></div>
-    <div class="dash-item"><span class="k">Claimable Now</span><span class="v green" id="claimableValue">Connect wallet</span><button class="copy-btn claim-btn" id="claimButton" type="button">Claim</button></div>
+    <div class="dash-item"><span class="k">Claimable Now</span><span class="v green" id="claimableValue"><span id="claimableAmount">Connect wallet</span></span><button class="copy-btn claim-btn" id="claimButton" type="button">Claim</button></div>
     <div class="dash-item"><span class="k">Locked Balance</span><span class="v" id="lockedValue">Connect wallet</span></div>
     <div class="dash-item"><span class="k">Next Unlock Date</span><span class="v" id="nextUnlockValue">Connect wallet</span></div>
     <div class="dash-item"><span class="k">Vesting Progress</span><span class="v" id="progressValue">0%</span><div class="progress-track"><div class="progress-bar" id="progressBar"></div></div></div>
@@ -660,6 +660,9 @@
   }
   function saleContract(signer){ return new ethers.Contract(SALE_CONTRACT, saleAbi, signer || readProvider); }
   function formatDate(timestamp){ return timestamp ? new Date(Number(timestamp) * 1000).toLocaleDateString() : "Fully unlocked"; }
+  function formatTokenAmount(rawAmount){
+    return Number(ethers.formatUnits(rawAmount, 18)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " LDX";
+  }
   async function loadDashboard(){
     if (!SALE_CONTRACT || !walletAddress) return;
     try{
@@ -668,13 +671,15 @@
       var vested = await sale.vestedAmount(walletAddress);
       var claimable = await sale.claimable(walletAddress);
       var next = await sale.nextUnlock(walletAddress);
-      var purchased = Number(ethers.formatUnits(allocation.purchased, 18));
-      var claimed = Number(ethers.formatUnits(allocation.claimed, 18));
+      var purchasedRaw = allocation.purchased ?? allocation[0];
+      var claimedRaw = allocation.claimed ?? allocation[1];
+      var purchased = Number(ethers.formatUnits(purchasedRaw, 18));
+      var claimed = Number(ethers.formatUnits(claimedRaw, 18));
       var vestedNumber = Number(ethers.formatUnits(vested, 18));
-      document.getElementById("purchasedValue").textContent = purchased.toLocaleString() + " LDX";
-      document.getElementById("claimedValue").textContent = claimed.toLocaleString() + " LDX";
-      document.getElementById("claimableValue").childNodes[0].textContent = Number(ethers.formatUnits(claimable, 18)).toLocaleString() + " LDX ";
-      document.getElementById("lockedValue").textContent = Math.max(0, purchased - vestedNumber).toLocaleString() + " LDX";
+      document.getElementById("purchasedValue").textContent = formatTokenAmount(purchasedRaw);
+      document.getElementById("claimedValue").textContent = formatTokenAmount(claimedRaw);
+      document.getElementById("claimableAmount").textContent = formatTokenAmount(claimable);
+      document.getElementById("lockedValue").textContent = Math.max(0, purchased - vestedNumber).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " LDX";
       document.getElementById("nextUnlockValue").textContent = formatDate(next);
       var progress = purchased ? Math.min(100, vestedNumber / purchased * 100) : 0;
       document.getElementById("progressValue").textContent = progress.toFixed(1) + "%";
