@@ -164,6 +164,20 @@
   .dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:16px}.dash-item{background:rgba(6,21,12,.9);padding:18px 20px}.dash-item .k{display:block;color:var(--muted);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:5px}.dash-item .v{font-weight:800;font-size:18px}.progress-track{height:8px;background:rgba(255,255,255,.1);border-radius:20px;overflow:hidden;margin-top:9px}.progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--green-2));border-radius:20px;transition:width .3s}
   .claim-btn{margin-top:10px;padding:6px 13px;color:var(--green-2);border-color:rgba(141,255,180,.45);background:transparent;cursor:pointer}.claim-btn:hover{background:rgba(30,227,90,.12)}
   .rate-meta{color:var(--muted);font-size:12px;margin-top:7px}
+  .purchase-state{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(2,8,12,.72);backdrop-filter:blur(8px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
+  .purchase-state.visible{opacity:1;visibility:visible;pointer-events:auto}
+  .purchase-dialog{width:min(430px,100%);padding:28px;border:1px solid rgba(125,233,255,.35);border-radius:14px;background:linear-gradient(145deg,rgba(14,35,39,.98),rgba(5,14,20,.98));box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 50px rgba(40,230,138,.12);text-align:center}
+  .purchase-spinner{width:42px;height:42px;margin:0 auto 18px;border:3px solid rgba(125,233,255,.18);border-top-color:var(--cyan);border-right-color:var(--green);border-radius:50%;animation:purchase-spin .8s linear infinite}
+  .purchase-state.done .purchase-spinner{display:none}
+  .purchase-dialog h3{margin-bottom:8px;font-size:22px}
+  .purchase-dialog p{color:var(--muted);font-size:14px;margin:0}
+  .purchase-dialog .purchase-detail{margin-top:14px;color:var(--green-2);font:12px var(--mono);word-break:break-word}
+  .purchase-close{display:none;margin-top:20px;cursor:pointer}
+  .purchase-state.done .purchase-close{display:inline-flex}
+  .purchase-state.error .purchase-spinner{display:none}
+  .purchase-state.error .purchase-close{display:inline-flex}
+  @keyframes purchase-spin{to{transform:rotate(360deg)}}
+  .sale-actions .btn:disabled{cursor:wait;opacity:.58;transform:none}
   @media(max-width:760px){.sale-top{align-items:flex-start;flex-direction:column}.sale-main{grid-template-columns:1fr;padding:25px}.sale-copy{padding-bottom:5px}.chain-chip{margin-top:18px}.dashboard{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:480px){.sale-shell{padding:0 14px}.sale-top{padding:24px 20px}.sale-title img{width:52px;height:52px}.sale-foot{padding:16px 20px}.sale-actions{grid-template-columns:1fr}.dashboard{grid-template-columns:1fr}.asset-tabs{gap:5px}.asset-tab{font-size:12px}}
 
@@ -319,6 +333,15 @@
     </div>
     <div class="sale-foot"><strong>Vesting:</strong> 10% TGE · 30 day cliff · 15% monthly for 6 months · Claims available any time after unlock</div>
   </div>
+    <div class="purchase-state" id="purchaseState" role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="purchaseStateTitle">
+      <div class="purchase-dialog">
+        <div class="purchase-spinner" aria-hidden="true"></div>
+        <h3 id="purchaseStateTitle">Waiting for wallet</h3>
+        <p id="purchaseStateMessage">Approve the transaction in your wallet. This page will remain open.</p>
+        <div class="purchase-detail" id="purchaseStateDetail"></div>
+        <button class="btn btn-secondary purchase-close" id="purchaseStateClose" type="button">Close</button>
+      </div>
+    </div>
   <div class="dashboard" aria-label="Your vesting dashboard">
     <div class="dash-item"><span class="k">Total Purchased</span><span class="v" id="purchasedValue">Connect wallet</span></div>
     <div class="dash-item"><span class="k">Total Claimed</span><span class="v" id="claimedValue">Connect wallet</span></div>
@@ -663,6 +686,15 @@
   function formatTokenAmount(rawAmount){
     return Number(ethers.formatUnits(rawAmount, 18)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " LDX";
   }
+  function setPurchaseState(title, message, detail, state){
+    var panel = document.getElementById("purchaseState");
+    panel.className = "purchase-state visible" + (state ? " " + state : "");
+    document.getElementById("purchaseStateTitle").textContent = title;
+    document.getElementById("purchaseStateMessage").textContent = message;
+    document.getElementById("purchaseStateDetail").textContent = detail || "";
+  }
+  function closePurchaseState(){ document.getElementById("purchaseState").className = "purchase-state"; }
+  function setPurchaseBusy(busy){ document.getElementById("buyButton").disabled = busy; document.getElementById("connectButton").disabled = busy; }
   async function loadDashboard(){
     if (!SALE_CONTRACT || !walletAddress) return;
     try{
@@ -733,6 +765,7 @@
   document.getElementById("claimButton").addEventListener("click",function(){
     claimTokens().catch(function(){ setSaleStatus("Claim was not completed. Check whether tokens are unlocked."); });
   });
+  document.getElementById("purchaseStateClose").addEventListener("click", closePurchaseState);
   if (window.ethereum){
     window.ethereum.on("accountsChanged",function(accounts){ accounts.length ? setDashboardConnected(accounts[0]) : location.reload(); });
     window.ethereum.on("chainChanged",function(){ location.reload(); });
@@ -747,19 +780,35 @@
     var signer = await provider.getSigner();
     var sale = saleContract(signer);
     var config = await sale.assets(assetIndexes[selectedAsset]);
+    if (!config.enabled){ setSaleStatus(selectedAsset + " is not configured in the sale contract."); return; }
     var decimals = config.token === ethers.ZeroAddress ? 18 : await new ethers.Contract(config.token, erc20Abi, signer).decimals();
     var rawAmount = ethers.parseUnits(amount, decimals);
-    if (config.token !== ethers.ZeroAddress){
-      setSaleStatus("Approve " + selectedAsset + " in your wallet...");
-      var approval = await new ethers.Contract(config.token, erc20Abi, signer).approve(SALE_CONTRACT, rawAmount);
-      await approval.wait();
+    setPurchaseBusy(true);
+    try{
+      if (config.token !== ethers.ZeroAddress){
+        setPurchaseState("Approve " + selectedAsset, "Approve the payment in your wallet. This page will remain open.", "Step 1 of 2 · waiting for wallet", "");
+        setSaleStatus("Approve " + selectedAsset + " in your wallet...");
+        var approval = await new ethers.Contract(config.token, erc20Abi, signer).approve(SALE_CONTRACT, rawAmount);
+        setPurchaseState("Approval submitted", "Waiting for the approval to confirm on BNB Smart Chain.", approval.hash, "");
+        await approval.wait();
+      }
+      setPurchaseState(selectedAsset === "BNB" ? "Confirm BNB payment" : "Confirm LDX purchase", "Confirm the transaction in your wallet. This page will remain open.", selectedAsset === "BNB" ? "Step 1 of 1 · waiting for wallet" : "Step 2 of 2 · waiting for wallet", "");
+      setSaleStatus("Confirm your LDX purchase in your wallet...");
+      var transaction = selectedAsset === "BNB" ? await sale.buy(assetIndexes[selectedAsset], 0, {value: rawAmount}) : await sale.buy(assetIndexes[selectedAsset], rawAmount);
+      setPurchaseState("Purchase submitted", "Your transaction was sent. Waiting for confirmation.", transaction.hash, "");
+      setSaleStatus("Purchase submitted: " + transaction.hash.slice(0,10) + "...");
+      await transaction.wait();
+      setPurchaseState("Purchase confirmed", "Your LDX purchase is recorded on BNB Smart Chain.", transaction.hash, "done");
+      setSaleStatus("Purchase confirmed on BNB Smart Chain.");
+      loadDashboard();
+    } catch(error){
+      var cancelled = error && (error.code === 4001 || error.code === "ACTION_REJECTED");
+      setPurchaseState(cancelled ? "Transaction cancelled" : "Purchase failed", cancelled ? "The wallet request was cancelled. You can try again when ready." : "The transaction was not completed. Check your wallet and try again.", "", "error");
+      setSaleStatus(cancelled ? "Wallet approval was cancelled." : "Purchase was not completed.");
+      throw error;
+    } finally {
+      setPurchaseBusy(false);
     }
-    setSaleStatus("Confirm your LDX purchase in your wallet...");
-    var transaction = selectedAsset === "BNB" ? await sale.buy(assetIndexes[selectedAsset], 0, {value: rawAmount}) : await sale.buy(assetIndexes[selectedAsset], rawAmount);
-    setSaleStatus("Purchase submitted: " + transaction.hash.slice(0,10) + "...");
-    await transaction.wait();
-    setSaleStatus("Purchase confirmed on BNB Smart Chain.");
-    loadDashboard();
   }
   async function claimTokens(){
     if (!walletAddress){ setSaleStatus("Connect your wallet before claiming."); return; }
