@@ -631,27 +631,31 @@
   ];
   var erc20Abi = ["function decimals() view returns (uint8)","function approve(address,uint256) returns (bool)"];
   var readProvider = new ethers.JsonRpcProvider("https://bsc-dataseed.binance.org");
-  var rateTimer;
+  var quoteRequest = 0;
 
   function formatLdx(value){
-    return "~ " + Math.floor(value).toLocaleString() + " LDX";
+    return "~ " + value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " LDX";
   }
   function updateAllocation(){
-    var amount = Number(document.getElementById("paymentAmount").value) || 0;
-    if (!SALE_CONTRACT || !amount){ document.getElementById("allocationValue").textContent = "0 LDX"; return; }
-    quotePayment(amount);
+    var input = document.getElementById("paymentAmount").value.trim();
+    var requestId = ++quoteRequest;
+    if (!SALE_CONTRACT || !input){ document.getElementById("allocationValue").textContent = "0 LDX"; document.getElementById("allocationNote").textContent = "Enter an amount to see the live allocation"; return; }
+    quotePayment(input, requestId);
   }
-  async function quotePayment(amount){
+  async function quotePayment(amount, requestId){
     try{
       var config = await new ethers.Contract(SALE_CONTRACT, saleAbi, readProvider).assets(assetIndexes[selectedAsset]);
+      if (!config.enabled){ throw new Error(selectedAsset + " is not configured in the sale contract"); }
       var decimals = config.token === ethers.ZeroAddress ? 18 : await new ethers.Contract(config.token, erc20Abi, readProvider).decimals();
-      var rawAmount = ethers.parseUnits(String(amount), decimals);
+      var rawAmount = ethers.parseUnits(amount, decimals);
       var ldxAmount = await new ethers.Contract(SALE_CONTRACT, saleAbi, readProvider).quote(assetIndexes[selectedAsset], rawAmount);
+      if (requestId !== quoteRequest) return;
       document.getElementById("allocationValue").textContent = formatLdx(Number(ethers.formatUnits(ldxAmount, 18)));
       document.getElementById("allocationNote").textContent = "On-chain oracle quote · 1 LDX = $0.0035 · updated " + new Date().toLocaleTimeString();
     } catch(error){
+      if (requestId !== quoteRequest) return;
       document.getElementById("allocationValue").textContent = "Quote unavailable";
-      document.getElementById("allocationNote").textContent = "The sale contract or its price feed is unavailable";
+      document.getElementById("allocationNote").textContent = error.message && error.message.includes("not configured") ? error.message : "The sale contract or its price feed is unavailable";
     }
   }
   function saleContract(signer){ return new ethers.Contract(SALE_CONTRACT, saleAbi, signer || readProvider); }
@@ -712,6 +716,7 @@
       document.querySelectorAll(".asset-tab").forEach(function(item){ item.classList.remove("active"); });
       button.classList.add("active"); selectedAsset = button.dataset.asset;
       document.getElementById("amountUnit").textContent = selectedAsset;
+      document.getElementById("allocationNote").textContent = "Checking " + selectedAsset + " configuration on BNB Smart Chain...";
       updateAllocation();
     });
   });
@@ -731,14 +736,14 @@
   async function buyTokens(){
     if (!walletAddress){ setSaleStatus("Connect your wallet before starting a purchase."); return; }
     if (!SALE_CONTRACT){ setSaleStatus("The live sale contract is unavailable."); return; }
-    var amount = Number(document.getElementById("paymentAmount").value);
-    if (!(amount > 0)){ setSaleStatus("Enter a payment amount first."); return; }
+    var amount = document.getElementById("paymentAmount").value.trim();
+    if (!amount){ setSaleStatus("Enter a payment amount first."); return; }
     var provider = new ethers.BrowserProvider(window.reownProvider || window.ethereum);
     var signer = await provider.getSigner();
     var sale = saleContract(signer);
     var config = await sale.assets(assetIndexes[selectedAsset]);
     var decimals = config.token === ethers.ZeroAddress ? 18 : await new ethers.Contract(config.token, erc20Abi, signer).decimals();
-    var rawAmount = ethers.parseUnits(String(amount), decimals);
+    var rawAmount = ethers.parseUnits(amount, decimals);
     if (config.token !== ethers.ZeroAddress){
       setSaleStatus("Approve " + selectedAsset + " in your wallet...");
       var approval = await new ethers.Contract(config.token, erc20Abi, signer).approve(SALE_CONTRACT, rawAmount);
